@@ -68,6 +68,8 @@ def flash_pico():
 class App(App):
     global github
 
+    TITLE = "GP2040 Flasher"
+    SUB_TITLE = "Select a firmware to flash"
     CSS_PATH = "css/list_view.css"
 
     BINDINGS = [
@@ -76,7 +78,7 @@ class App(App):
     ]
 
     def compose(self) -> ComposeResult:
-        yield Header()
+        yield Header(show_clock = False)
 
         version, release_date, firmware_files = github.get_latest_release_info()
 
@@ -87,7 +89,7 @@ class App(App):
             for firmware_file in firmware_files:
                 version, name = github.get_info_from_firmware_file_name(firmware_file["name"])
                 list.append(ListItem(Label(f"{name} ({version})")))
-            yield ListView(*list)
+            yield ListView(*list, classes="box")
         yield Footer()
 
     def action_toggle_dark(self) -> None:

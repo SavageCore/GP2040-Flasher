@@ -1,5 +1,10 @@
 Screen {
     align: center middle;
+    layout: vertical;
+}
+
+.box {
+    height: 1fr;
 }
 
 ListView {
