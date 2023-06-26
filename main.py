@@ -2,6 +2,7 @@ import os
 import platform
 import subprocess
 import time
+import sys
 from picotool import Picotool
 from github import Github
 from textual.app import App, ComposeResult
@@ -10,6 +11,7 @@ from textual.widgets import Header, Footer, ListView, ListItem, Label
 picotool = Picotool()
 github = Github()
 running = True
+selected_firmware = None
 
 if platform.system() == 'Linux':
     import pyudev
@@ -43,10 +45,11 @@ def flash_drive_handler(action, device):
 def flash_pico():
     global picotool
     global running
+    global selected_firmware
 
     if picotool.get_program_name() is None:
         print("Flashing firmware...")
-        result = picotool.flash_firmware('GP2040-CE_0.7.2_Stress.uf2')
+        result = picotool.flash_firmware(selected_firmware)
 
         if result:
             print("Firmware flashed.")
@@ -64,6 +67,16 @@ def flash_pico():
         print("")
         # Wait for the Pico to reboot
         time.sleep(2)
+
+class LabelItem(ListItem):
+    def __init__(self, label: str, file_name: str, browser_download_url: str) -> None:
+        super().__init__()
+        self.label = label
+        self.file_name = file_name
+        self.browser_download_url = browser_download_url
+
+    def compose( self ) -> ComposeResult:
+        yield Label(self.label)
 
 class App(App):
     global github
@@ -88,9 +101,18 @@ class App(App):
             # For each firmware file, get the info from the filename and add it to the list
             for firmware_file in firmware_files:
                 version, name = github.get_info_from_firmware_file_name(firmware_file["name"])
-                list.append(ListItem(Label(f"{name} ({version})")))
+                list.append(LabelItem(f"{name} ({version})", firmware_file["name"], firmware_file["browser_download_url"]))
             yield ListView(*list, classes="box")
         yield Footer()
+
+    def on_list_view_selected(self, event: ListView.Selected) -> None:
+        global selected_firmware
+        # Download the selected firmware file
+        print("Downloading firmware...")
+        selected_firmware = github.download_file(event.item.browser_download_url)
+        print("Firmware downloaded.")
+        print("")
+        print(selected_firmware)
 
     def action_toggle_dark(self) -> None:
         """An action to toggle dark mode."""
@@ -100,15 +122,12 @@ class App(App):
         """An action to quit the app."""
         global running
         running = False
-        self.quit()
+        sys.exit()
 
 def main():
     global picotool
     global running
     # global github
-
-    app = App()
-    app.run()
 
     if picotool.is_installed() is False:
         print("FATAL: picotool is not installed")
@@ -119,6 +138,9 @@ def main():
         else:
             print("See: https://github.com/raspberrypi/pico-setup")
         return
+
+    app = App()
+    app.run()
 
     if platform.system() == 'Linux':
         context = pyudev.Context()

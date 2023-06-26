@@ -32,6 +32,7 @@ class Github:
 
         return None, None, None
 
+    # Download the firmware file, save to "firmware" directory and return the filename
     def download_file(self, url):
         # Extract the filename from the URL
         filename = url.split("/")[-1]
@@ -41,13 +42,13 @@ class Github:
 
         # Check if the file already exists
         if os.path.exists(save_path):
-            return save_path
+            return filename
 
         try:
             # Download the file and save it to the temporary directory
             urllib.request.urlretrieve(url, save_path)
             print("File downloaded successfully to:", save_path)
-            return save_path
+            return filename
         except urllib.error.URLError as e:
             print("Failed to download the file:", e)
             return None
