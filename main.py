@@ -3,8 +3,12 @@ import platform
 import subprocess
 import time
 from picotool import Picotool
+from github import Github
+from textual.app import App, ComposeResult
+from textual.widgets import Header, Footer, ListView, ListItem, Label
 
 picotool = Picotool()
+github = Github()
 running = True
 
 if platform.system() == 'Linux':
@@ -61,9 +65,48 @@ def flash_pico():
         # Wait for the Pico to reboot
         time.sleep(2)
 
+class App(App):
+    global github
+
+    CSS_PATH = "css/list_view.css"
+
+    BINDINGS = [
+        ("d", "toggle_dark", "Toggle dark mode"),
+        ("q", "quit", "Quit")
+    ]
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+
+        version, release_date, firmware_files = github.get_latest_release_info()
+
+
+        if firmware_files is not None:
+            list = []
+            # For each firmware file, get the info from the filename and add it to the list
+            for firmware_file in firmware_files:
+                version, name = github.get_info_from_firmware_file_name(firmware_file["name"])
+                list.append(ListItem(Label(f"{name} ({version})")))
+            yield ListView(*list)
+        yield Footer()
+
+    def action_toggle_dark(self) -> None:
+        """An action to toggle dark mode."""
+        self.dark = not self.dark
+
+    def action_quit(self) -> None:
+        """An action to quit the app."""
+        global running
+        running = False
+        self.quit()
+
 def main():
     global picotool
     global running
+    # global github
+
+    app = App()
+    app.run()
 
     if picotool.is_installed() is False:
         print("FATAL: picotool is not installed")
