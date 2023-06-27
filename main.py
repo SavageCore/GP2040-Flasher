@@ -2,8 +2,6 @@ import os
 import platform
 import time
 import sys
-import threading
-import asyncio
 from picotool import Picotool
 from github import Github
 from textual.app import App, ComposeResult
@@ -69,7 +67,8 @@ class FlashingScreen(Screen):
         else:
             print("Windows or Mac OS, not using udev")
             # threading.Thread(target=self.wait_for_pico_detection).start()
-            self.wait_for_pico_detection()
+            # self.wait_for_pico_detection()
+            self.run_worker(self.wait_for_pico_detection(), start=True, exclusive=True)
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=False)
