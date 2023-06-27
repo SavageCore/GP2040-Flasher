@@ -1,6 +1,5 @@
 import os
 import platform
-import subprocess
 import time
 import sys
 import threading
@@ -8,7 +7,7 @@ import asyncio
 from picotool import Picotool
 from github import Github
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, ListView, ListItem, Label, Placeholder
+from textual.widgets import Header, Footer, ListView, ListItem, Label
 from textual import events
 from textual.screen import Screen
 
@@ -57,9 +56,9 @@ class SelectionScreen(Screen):
         print("Firmware downloaded.")
         print("")
         print(selected_firmware)
-        self.app.push_screen(WaitingScreen())
+        app.switch_screen(FlashingScreen())
 
-class WaitingScreen(Screen):
+class FlashingScreen(Screen):
     def on_mount(self) -> None:
         if platform.system() == 'Linux':
             context = pyudev.Context()
@@ -69,7 +68,8 @@ class WaitingScreen(Screen):
             observer.start()
         else:
             print("Windows or Mac OS, not using udev")
-            threading.Thread(target=self.wait_for_pico_detection).start()
+            # threading.Thread(target=self.wait_for_pico_detection).start()
+            self.wait_for_pico_detection()
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=False)
@@ -81,31 +81,16 @@ class WaitingScreen(Screen):
         device_name = device.sys_name.split('/')[-1]
         if action == 'add' and device_name == "sda" and device.get('ID_VENDOR') == 'RPI' and device.get('ID_MODEL') == 'RP2':
             print("Pico detected.")
-            asyncio.ensure_future(self.app.push_screen(FlashingScreen()))
+            print("Flashing firmware...")
+            flash_pico(self)
 
     def wait_for_pico_detection(self):
         while True:
             if detect_pico():
                 print("Pico detected.")
-                asyncio.ensure_future(self.push_flashing_screen())
-                break
+                print("Flashing firmware...")
+                flash_pico(self)
             time.sleep(1)
-
-    async def push_flashing_screen(self):
-        await asyncio.sleep(0)  # Ensure this is executed in the event loop
-        self.app.push_screen(FlashingScreen())
-
-class FlashingScreen(Screen):
-    def on_mount(self) -> None:
-        # Flash the firmware
-        print("Flashing firmware...")
-        flash_pico(self)
-
-    def compose(self) -> ComposeResult:
-        yield Header(show_clock=True)
-        yield Label("Selected firmware: " + selected_firmware)
-        yield Label("Flashing...", id="flashing-status")
-        yield Footer()
 
 class LayoutApp(App):
     TITLE = "GP2040 Flasher"
@@ -131,7 +116,6 @@ def detect_pico():
         for d in win_drives:
             volume = win32api.GetVolumeInformation(d)
             if volume[0] == 'RPI-RP2':
-                print("Found Pico at " + d)
                 drives.append(d)
 
     elif platform.system() == 'Darwin':
@@ -145,13 +129,12 @@ def detect_pico():
 def flash_pico(self):
     if selected_firmware is not None:
         if picotool.get_program_name() is None:
-            print("Flashing firmware...")
+            print("Flashing firmware[blink]_[/]")
             if picotool.flash_firmware(selected_firmware):
                 print("Firmware flashed successfully.")
                 print("")
                 # Wait for the Pico to reboot
                 time.sleep(2)
-                asyncio.ensure_future(self.push_waiting_screen())
             else:
                 print("Firmware flash failed.")
                 print("")
@@ -168,10 +151,6 @@ def flash_pico(self):
         print("No firmware selected.")
         app.running = False
         sys.exit()
-
-    async def push_waiting_screen(self):
-        await asyncio.sleep(0)  # Ensure this is executed in the event loop
-        self.app.push_screen(WaitingScreen())
 
 def main():
     if picotool.is_installed() is False:
