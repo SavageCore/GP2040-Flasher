@@ -8,6 +8,7 @@ from picotool import Picotool
 from github import Github
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, ListView, ListItem, Label
+from textual import events
 
 picotool = Picotool()
 github = Github()
@@ -49,11 +50,6 @@ class GP2040FlasherApp(App):
     TITLE = "GP2040 Flasher"
     SUB_TITLE = "Select a firmware to flash"
     CSS_PATH = "css/list_view.css"
-
-    BINDINGS = [
-        ("d", "toggle_dark", "Toggle dark mode"),
-        ("q", "quit", "Quit")
-    ]
 
     def __init__(self):
         super().__init__()
@@ -106,12 +102,10 @@ class GP2040FlasherApp(App):
         print("")
         print(selected_firmware)
 
-    def action_toggle_dark(self) -> None:
-        self.dark = not self.dark
-
-    def action_quit(self) -> None:
-        self.running = False
-        sys.exit()
+    async def on_key(self, event: events.Key) -> None:
+        if event.key == "q":
+            self.running = False
+            await sys.exit()
 
 def flash_drive_handler(action, device, app):
     device_name = device.sys_name.split('/')[-1]
