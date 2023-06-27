@@ -30,7 +30,10 @@ class LabelItem(ListItem):
 class SelectionScreen(Screen):
     TITLE = "GP2040 Flasher 2"
     SUB_TITLE = "Select a firmware to flash"
-    CSS_PATH = "css/list_view.css"
+    CSS_PATH = [
+        "css/main.css",
+        "css/list_view.css"
+    ]
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=False)
@@ -44,7 +47,7 @@ class SelectionScreen(Screen):
                 version, name = github.get_info_from_firmware_file_name(firmware_file["name"])
                 items.append(LabelItem(f"{name} ({version})", firmware_file["name"], firmware_file["browser_download_url"]))
             yield ListView(*items, classes="box")
-        yield Footer()
+        # yield Footer()
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         global selected_firmware
@@ -74,7 +77,7 @@ class FlashingScreen(Screen):
         yield Header(show_clock=False)
         yield Label("Selected firmware: " + selected_firmware)
         yield Label("Waiting for Pico to be detected...", id="waiting-status")
-        yield Footer()
+        # yield Footer()
 
     def flash_drive_handler(self, action, device):
         device_name = device.sys_name.split('/')[-1]

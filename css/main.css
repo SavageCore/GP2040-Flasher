@@ -1,0 +1,12 @@
+Header {
+    dock: top;
+    height: 3;
+    content-align: center middle;
+    background: #14171e;
+    color: #fff;
+}
+
+Footer {
+    background: #14171e;
+    color: #adb5bd;
+}

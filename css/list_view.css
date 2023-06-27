@@ -11,8 +11,40 @@ ListView {
     width: 60;
     height: auto;
     margin: 2 2;
+    scrollbar-color: #adb5bd;
+    background: #14171e;
+    color: #adb5bd;
 }
 
 Label {
     padding: 1 2;
+}
+
+Label:hover {
+    background: #34393f;
+    color: #fff;
+}
+
+ListItem {
+    padding: 1 2;
+}
+
+ListItem:blur {
+    background: red;
+    color: #fff;
+}
+
+ListItem:focus {
+    background: green;
+    color: #fff;
+}
+
+ListItem:focus-within {
+    background: yellow;
+    color: #fff;
+}
+
+ListItem:hover {
+    background: #495057;
+    color: #fff;
 }
