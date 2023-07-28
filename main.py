@@ -13,9 +13,13 @@ picotool = Picotool()
 github = Github()
 selected_firmware = None
 detection_thread = None
+offline_mode = False
 
 if platform.system() == 'Linux':
     import pyudev
+
+if len(sys.argv) > 1 and sys.argv[1] == "--offline":
+    offline_mode = True
 
 class LabelItem(ListItem):
     def __init__(self, label: str, file_name: str, browser_download_url: str) -> None:
@@ -38,10 +42,7 @@ class SelectionScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=False)
 
-        # If --offline is passed as an argument, show a message
-        if len(sys.argv) > 1 and sys.argv[1] == "--offline":
-            # Offline mode
-            # Look for firmware files in the "firmware" directory
+        if offline_mode:
             firmware_files = os.listdir(github.firmware_dir)
             items = []
 
@@ -67,10 +68,14 @@ class SelectionScreen(Screen):
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         global selected_firmware
 
-        print("Downloading firmware...")
-        selected_firmware = github.download_file(event.item.browser_download_url)
-        print("Firmware downloaded.")
-        print("")
+
+        if not offline_mode:
+            print("Downloading firmware...")
+            selected_firmware = github.download_file(event.item.browser_download_url)
+            print("Firmware downloaded.")
+            print("")
+        else:
+            selected_firmware = event.item.file_name
         print(selected_firmware)
         app.switch_screen(FlashingScreen())
 
