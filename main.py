@@ -47,6 +47,16 @@ class SelectionScreen(Screen):
                 version, name = github.get_info_from_firmware_file_name(firmware_file["name"])
                 items.append(LabelItem(f"{name} ({version})", firmware_file["name"], firmware_file["browser_download_url"]))
             yield ListView(*items, classes="box")
+        else:
+            # Offline mode
+            # Look for firmware files in the "firmware" directory
+            firmware_files = os.listdir(github.firmware_dir)
+            items = []
+
+            for firmware_file in firmware_files:
+                version, name = github.get_info_from_firmware_file_name(firmware_file)
+                items.append(LabelItem(f"{name} ({version})", firmware_file, None))
+            yield ListView(*items, classes="box")
         # yield Footer()
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:
