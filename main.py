@@ -38,17 +38,6 @@ class SelectionScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=False)
 
-        version, release_date, firmware_files = github.get_latest_release_info()
-
-        if firmware_files is not None:
-            items = []
-
-            for firmware_file in firmware_files:
-                version, name = github.get_info_from_firmware_file_name(firmware_file["name"])
-                items.append(LabelItem(f"{name} ({version})", firmware_file["name"], firmware_file["browser_download_url"]))
-            yield ListView(*items, classes="box")
-            return
-
         # If --offline is passed as an argument, show a message
         if len(sys.argv) > 1 and sys.argv[1] == "--offline":
             # Offline mode
@@ -59,6 +48,17 @@ class SelectionScreen(Screen):
             for firmware_file in firmware_files:
                 version, name = github.get_info_from_firmware_file_name(firmware_file)
                 items.append(LabelItem(f"{name} ({version})", firmware_file, None))
+            yield ListView(*items, classes="box")
+            return
+
+        version, release_date, firmware_files = github.get_latest_release_info()
+
+        if firmware_files is not None:
+            items = []
+
+            for firmware_file in firmware_files:
+                version, name = github.get_info_from_firmware_file_name(firmware_file["name"])
+                items.append(LabelItem(f"{name} ({version})", firmware_file["name"], firmware_file["browser_download_url"]))
             yield ListView(*items, classes="box")
         # yield Footer()
 
