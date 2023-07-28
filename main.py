@@ -47,7 +47,10 @@ class SelectionScreen(Screen):
                 version, name = github.get_info_from_firmware_file_name(firmware_file["name"])
                 items.append(LabelItem(f"{name} ({version})", firmware_file["name"], firmware_file["browser_download_url"]))
             yield ListView(*items, classes="box")
-        else:
+            return
+
+        # If --offline is passed as an argument, show a message
+        if len(sys.argv) > 1 and sys.argv[1] == "--offline":
             # Offline mode
             # Look for firmware files in the "firmware" directory
             firmware_files = os.listdir(github.firmware_dir)
