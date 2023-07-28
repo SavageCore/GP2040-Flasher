@@ -46,6 +46,8 @@ class SelectionScreen(Screen):
             items = []
 
             for firmware_file in firmware_files:
+                if firmware_file == "flash_nuke.uf2":
+                    continue
                 version, name = github.get_info_from_firmware_file_name(firmware_file)
                 items.append(LabelItem(f"{name} ({version})", firmware_file, None))
             yield ListView(*items, classes="box")
